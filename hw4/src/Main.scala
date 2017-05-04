@@ -45,7 +45,7 @@ object Main {
     class IterDictImpl[K, V](eqFunc: K => K => Boolean)(val data: List[(K, V)])
         extends IterDict[K, V] {
 
-      def getValue = data.firstOption
+      def getValue: Option[(K, V)] = data.headOption
 
       def getNext = new IterDictImpl[K, V](eqFunc)(data.tail)
 
