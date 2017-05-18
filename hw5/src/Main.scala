@@ -6,14 +6,14 @@ object Main extends App {
    Implement traits for complex number addition/multiplication.
    */
   trait ComplexNumberAdd extends ComplexNumberSpec {
-    def add(that: ComplexNumberSpec): ComplexNumberSpec = {
-      makeRectangular(real + that.real, imaginary + that.imaginary)
+    def add(that: ComplexNumberSpec): ComplexNumberImpl = {
+      new ComplexNumberImpl(true, real + that.real, imaginary + that.imaginary)
     }
   }
 
   trait ComplexNumberMult extends ComplexNumberSpec {
-    def mult(that: ComplexNumberSpec): ComplexNumberSpec = {
-      makeRectangular(real * that.real - imaginary * that.imaginary, real * that.imaginary + that.real * imaginary)
+    def mult(that: ComplexNumberSpec): ComplexNumberImpl = {
+      new ComplexNumberImpl(true, real * that.real - imaginary * that.imaginary, real * that.imaginary + that.real * imaginary)
     }
   }
 
@@ -33,17 +33,17 @@ object Main extends App {
       with ComplexNumberAdd
       with ComplexNumberMult {
     def eval(coeffs: List[ComplexNumberEval]): ComplexNumberSpec = {
-      def _pow(exponent: Int): ComplexNumberEval = {
-        if (exponent == 0) makeRectangular(1, 0)
+      def _pow(exponent: Int): ComplexNumberSpec = {
+        if (exponent == 0) new ComplexNumberImpl(true, 1, 0)
         else if (exponent == 1) this
         else mult(_pow(exponent-1))
       }
       def _eval(exponent: Int, coeffs: List[ComplexNumberEval], accu: ComplexNumberEval)
-        : ComplexNumberEval = coeffs.headOption match {
+        : ComplexNumberSpec = coeffs.headOption match {
         case Some(head) => _eval(exponent+1, coeffs.tail, accu.add(head.mult(_pow(exponent))))
         case None => accu
       }
-      _eval(0, coeffs, makeRectangular(1, 0))
+      _eval(0, coeffs, new ComplexNumberImpl(true, 0, 0))
     }
   }
 
@@ -63,15 +63,18 @@ object Main extends App {
       with ComplexNumberAdd
       with ComplexNumberMult
       with ComplexNumberEval {
-        val real =
-        val imaginary: Double
-        val magnitude: Double
-        val angle: Double
-        def makeRectangular(real: Double, imaginary: Double): ComplexNumberSpec
-        def makePolar(magnitude: Double, angle: Double): ComplexNumberSpec
-    if (isRectangular) {
-      makeRectangular(arg1, arg2)
-    else makePolar(arg1, ComplexNumberSpec.normalizeAngle(arg2))
+
+    val real: Double = if (isRectangular) arg1 else ComplexNumberSpec.polarToRectangular(arg1, ComplexNumberSpec.normalizeAngle(arg2))._1
+    val imaginary: Double = if (isRectangular) arg2 else ComplexNumberSpec.polarToRectangular(arg1, ComplexNumberSpec.normalizeAngle(arg2))._2
+    val magnitude: Double = if (!isRectangular) arg1 else ComplexNumberSpec.rectangularToPolar(arg1, arg2)._1
+    val angle: Double = if (!isRectangular) arg2 else ComplexNumberSpec.rectangularToPolar(arg1, arg2)._2
+
+    def makeRectangular(real: Double, imaginary: Double): ComplexNumberSpec = {
+      new ComplexNumberImpl(true, real, imaginary)
+    }
+    def makePolar(magnitude: Double, angle: Double): ComplexNumberSpec = {
+      new ComplexNumberImpl(false, magnitude, angle)
+    }
   }
 
 }
